@@ -1,0 +1,16 @@
+version: '1',
+services:
+  webserver:
+    build:
+      context: ./
+      dockerfile: app.dockerfile
+      # /var/www is set so that it would be easy to 
+      working_dir: /var/www
+      single volume definition is used to mount everything in the current directory
+      volumes:
+        - ./:/var/www
+      environment:
+        - DB_PORT: 3306
+          DB_HOST: database
+
+
