@@ -1,16 +1,58 @@
-version: '1',
+version: '2.2'
+
 services:
+
+  playground:
+    build:
+      context: ./
+      # to keep things modular
+      dockerfile: .docker/playground.dockerfile
+      # /var/www is set so that it would be easy to navigate and save us some few keyboard strokes.
+    working_dir: /var
+      # single volume definition is used to mount everything in the current directory
+      # also lets us change our source code and reflect them in our running app.
+    volumes:
+      - ./:/var/www
+    environment:
+      DB_PORT: 3306
+      DB_HOST: database
+      DB_USERNAME: homestead
+      DB_PASSWORD: secret
+
   webserver:
     build:
       context: ./
-      dockerfile: app.dockerfile
-      # /var/www is set so that it would be easy to 
-      working_dir: /var/www
-      single volume definition is used to mount everything in the current directory
-      volumes:
-        - ./:/var/www
-      environment:
-        - DB_PORT: 3306
-          DB_HOST: database
+      dockerfile: .docker/webserver.dockerfile
+    working_dir: /var/www
+      # to re use what is defined in PHP-FPM service above which means the nginx container will
+      # inherit from /var/www directory
+    volumes_from:
+      - playground
+      # ports:
+      #   - 8080:80
 
+  database:
+    image: mysql:5.6
+    volumes:
+      - dbdata:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: homestead
+      MYSQL_USER: homestead
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+    ports:
+        - "33061:3306"
 
+  phpmyadmin:
+    image: corbinu/docker-phpmyadmin
+    links:
+      - database:mysql
+    ports:
+      - 8181:80
+    environment:
+      MYSQL_USERNAME: homestead
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_PORT_3306_TCP_ADDR: database
+
+volumes:
+  dbdata:
