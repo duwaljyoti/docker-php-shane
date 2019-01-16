@@ -2,11 +2,11 @@ version: '2.2'
 
 services:
 
-  playground:
+  cliserver:
     build:
       context: ./
       # to keep things modular
-      dockerfile: .docker/playground.dockerfile
+      dockerfile: .docker/cliserver.dockerfile
       # /var/www is set so that it would be easy to navigate and save us some few keyboard strokes.
     working_dir: /var
       # single volume definition is used to mount everything in the current directory
@@ -19,17 +19,18 @@ services:
       DB_USERNAME: homestead
       DB_PASSWORD: secret
 
-  webserver:
+  nginxserver:
     build:
       context: ./
-      dockerfile: .docker/webserver.dockerfile
+      dockerfile: .docker/nginxserver.dockerfile
     working_dir: /var/www
       # to re use what is defined in PHP-FPM service above which means the nginx container will
       # inherit from /var/www directory
     volumes_from:
-      - playground
-      # ports:
-      #   - 8080:80
+      - cliserver
+    # mapping port 8080 on the host to 80 in the container
+    ports:
+      - 8080:80
 
   database:
     image: mysql:5.6
